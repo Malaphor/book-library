@@ -20,7 +20,7 @@ const Sidebar = () => {
   //console.log(pathname);
 
   return (
-    <div className="px-5 pb-3 border">
+    <div className="px-5 pb-3 z-50 relative h-full w-full bg-zinc-900">
       <form className="flex items-center relative mt-8">
         <input
           className="pl-5 py-1 w-full rounded-full text-black"

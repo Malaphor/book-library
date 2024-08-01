@@ -67,6 +67,10 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
   const [coverImageType, setCoverImageType] = useState("generate");
   const [isbnSearch, setIsbnSearch] = useState("auto");
   const [manualIsbn, setManualIsbn] = useState("");
+  const [extraBookInfo, setExtraBookInfo] = useState({
+    contributors: [],
+    lang: "",
+  });
   const pagesToSearch = 6;
 
   const searchBookInfo = async (isbn: string) => {
@@ -90,6 +94,10 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
       form.setValue("isbn", isbn);
       form.setValue("publishYear", "" + data.docs[0].first_publish_year);
       form.setValue("olid", data.docs[0].edition_key);
+      setExtraBookInfo({
+        contributors: data.docs[0].contributor,
+        lang: data.docs[0].language,
+      });
     } catch (error) {
       console.error(error);
     }
@@ -105,11 +113,25 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
     for (let i = 1; i < pagesToSearch + 1; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
+      let textWithIsbn: string[] = [];
 
       for (let j = 0; j < textContent.items.length; j++) {
         const item = textContent.items[j];
         if (isTextItem(item)) {
-          if (item.str.includes("ISBN")) return item.str;
+          if (item.str.includes("ISBN")) {
+            //some books have TextItems between ISBN and the number so we grab the whole line
+            for (let k = 0; k < 5; k++) {
+              textWithIsbn.push(textContent.items[j + k].str);
+              if (textContent.items[j + k].hasEOL === true) break;
+            }
+            //some books have extra spaces or '' after the number so we filter all that shit out
+            const textToReturn = textWithIsbn.filter(
+              (text) => text !== " " && text !== ""
+            );
+            //console.log("returned", textToReturn);
+            return textToReturn.join(" ");
+            //return item.str;
+          }
         }
       }
     }
@@ -160,8 +182,12 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
           return;
         }
 
-        const isbn = textWithIsbn.split(" ")[1].replaceAll(hyphenRegex, "");
-        //console.log(isbn);
+        const splitText = textWithIsbn.split(" ");
+        const isbn = splitText[splitText.length - 1].replaceAll(
+          hyphenRegex,
+          ""
+        );
+
         if (isValidIsbn(isbn)) {
           await searchBookInfo(isbn);
         } else {
@@ -252,6 +278,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
     setParseMessage("");
 
     let imageFile;
+    let imageBlob;
     const imageName = getImageName(data.bookFile[0].name);
 
     if (coverImageType === "generate") {
@@ -262,6 +289,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
         return;
       }
 
+      imageBlob = imageData.data;
       imageFile = new File([imageData.data], `${imageName}.png`, {
         type: "image/png",
       });
@@ -273,7 +301,6 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
         return;
       }
 
-      let imageBlob;
       for (let i = 0; i < data.olid.length; i++) {
         const url = `https://covers.openlibrary.org/b/olid/${data.olid[i]}.jpg`;
         const response = await fetch(url, {});
@@ -287,7 +314,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
         }
       }
 
-      if (!imageFile) {
+      if (!imageFile || !imageBlob) {
         setParseMessage("Failed to get image. Try again or generate from PDF.");
         return;
       }
@@ -299,9 +326,8 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
     formData.append("isbn", data.isbn);
     formData.append("publishYear", data.publishYear);
     formData.append("bookFile", data.bookFile[0]);
-    formData.append("image", imageFile);
-    //formData.append("imageWidth", imageData?.width || "");
-    //formData.append("imageHeight", imageData?.height || "");
+    formData.append("image", imageBlob);
+    formData.append("extra", JSON.stringify(extraBookInfo));
 
     const response = await fetch("/api/books", {
       method: "POST",
@@ -507,9 +533,13 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
           <DialogClose asChild>
             <Button type="button">Cancel</Button>
           </DialogClose>
-          <Button type="submit" variant="secondary" disabled={isUploading}>
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={isUploading || isLoading}
+          >
             {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add To Library
+            {isUploading ? "Adding to library..." : "Add To Library"}
           </Button>
         </div>
       </form>

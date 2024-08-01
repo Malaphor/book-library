@@ -12,11 +12,15 @@ export const addBookFormSchema = z.object({
 
 export const addBookServerSchema = z.object({
   bookFile: z.custom<File>(),
-  image: z.custom<File>(),
+  image: z.custom<Blob>(),
   title: z.string().min(2).max(150),
   author: z.string().min(2).max(150),
   isbn: z.string().min(10).max(13),
   publishYear: z.number().int().gte(1000).lte(9999),
+  extra: z.object({
+    contributors: z.array(z.string()),
+    lang: z.string(),
+  }),
 });
 
 export type BookEditType = {
@@ -48,4 +52,24 @@ export type AddBookFormProps = {
 export type ApiResponse = {
   message: string;
   error?: Error;
+};
+
+export type BookCoverProps = {
+  imageUrl: string;
+  title: string;
+  author: string;
+  year: number;
+  bookId: string;
+};
+
+export type BookDocument = {
+  _id: Types.ObjectId;
+  title: string;
+  author: string;
+  isbn: string;
+  publishYear: number;
+  bookUrl: string;
+  imageUrl: string;
+  contributors: string[];
+  lang: string;
 };

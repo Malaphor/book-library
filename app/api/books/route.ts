@@ -1,3 +1,4 @@
+import { resizeCoverImage } from "@/lib/actions";
 import { addBookServerSchema } from "@/lib/constants";
 import dbConnect from "@/lib/dbconnect";
 import { utapi } from "@/lib/uploadthing";
@@ -23,7 +24,7 @@ export const GET = async () => {
 export const POST = async (req: Request) => {
   try {
     const fd = await req.formData();
-    console.log(fd);
+
     const fdJson = {
       title: fd.get("title"),
       author: fd.get("author"),
@@ -31,6 +32,7 @@ export const POST = async (req: Request) => {
       publishYear: parseInt(fd.get("publishYear") as string),
       bookFile: fd.get("bookFile"),
       image: fd.get("image"),
+      extra: JSON.parse(String(fd.get("extra"))),
     };
 
     const result = addBookServerSchema.safeParse(fdJson);
@@ -43,7 +45,6 @@ export const POST = async (req: Request) => {
         })
       );
     }
-    console.log(result.data.bookFile);
 
     if (result.data.bookFile.type !== "application/pdf") {
       return new NextResponse(
@@ -54,11 +55,15 @@ export const POST = async (req: Request) => {
       );
     }
 
+    const resizedImage = await resizeCoverImage(
+      result.data.image,
+      result.data.bookFile.name
+    );
+
     const response: UploadFileResult[] = await utapi.uploadFiles([
       result.data.bookFile,
-      result.data.image,
+      resizedImage as File,
     ]);
-    console.log("res", response);
 
     if (!response || response[0].error || response[1].error) {
       console.log(response[0].error, response[1].error);

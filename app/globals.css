@@ -67,3 +67,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+.pdf-contents li {
+  padding-left: 10px;
+  padding-bottom: 10px;
+  text-transform: capitalize;
+}
