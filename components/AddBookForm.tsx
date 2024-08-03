@@ -454,7 +454,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
                 </div>
               </RadioGroup>
               <p className="w-full text-center mt-3 font-semibold">
-                Press "Search for info" to apply changes
+                Press &quot;Search for info&quot; to apply changes
               </p>
             </AccordionContent>
           </AccordionItem>

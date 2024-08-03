@@ -46,7 +46,7 @@ const ReadBook = ({ params }: { params: { bookId: string } }) => {
       setPageNumber(page);
     };
     getBookInfo();
-  }, []);
+  }, [bookId]);
 
   return (
     <main className="flex flex-col h-screen relative overflow-hidden">
