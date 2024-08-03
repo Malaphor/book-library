@@ -25,3 +25,5 @@ Icons:
 [Correct icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/correct)
 
 [Pencil icons created by Pixel perfect - Flaticon](https://www.flaticon.com/free-icons/pencil)
+
+[Trash icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/trash)

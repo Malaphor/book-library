@@ -18,9 +18,29 @@ export const addBookServerSchema = z.object({
   isbn: z.string().min(10).max(13),
   publishYear: z.number().int().gte(1000).lte(9999),
   extra: z.object({
-    contributors: z.array(z.string()),
-    lang: z.string(),
+    contributors: z.string().optional(),
+    lang: z.string().optional(),
+    pages: z.number().int().gte(1),
   }),
+});
+
+export const editBookFormSchema = z.object({
+  title: z.string().min(2).max(150),
+  author: z.string().min(2).max(150),
+  isbn: z.string().min(10).max(13),
+  publishYear: z.string().length(4),
+  contributors: z.string(),
+  lang: z.string(),
+});
+
+export const editBookServerSchema = z.object({
+  id: z.string(),
+  title: z.string().min(2).max(150),
+  author: z.string().min(2).max(150),
+  isbn: z.string().min(10).max(13),
+  publishYear: z.number().int().gte(1000).lte(9999),
+  contributors: z.string(),
+  lang: z.string(),
 });
 
 export type BookEditType = {
@@ -49,6 +69,11 @@ export type AddBookFormProps = {
   closeDialog: () => void;
 };
 
+export type EditBookFormProps = {
+  book: BookDocument;
+  closeDialog: () => void;
+};
+
 export type ApiResponse = {
   message: string;
   error?: Error;
@@ -70,6 +95,16 @@ export type BookDocument = {
   publishYear: number;
   bookUrl: string;
   imageUrl: string;
-  contributors: string[];
+  contributors: string;
+  lang: string;
+};
+
+export type EditBookDocument = {
+  id: Types.ObjectId;
+  title: string;
+  author: string;
+  isbn: string;
+  publishYear: number;
+  contributors: string;
   lang: string;
 };

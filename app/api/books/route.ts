@@ -35,6 +35,8 @@ export const POST = async (req: Request) => {
       extra: JSON.parse(String(fd.get("extra"))),
     };
 
+    console.log("fd", fdJson);
+
     const result = addBookServerSchema.safeParse(fdJson);
     if (!result.success) {
       console.log(result.error);
@@ -84,6 +86,9 @@ export const POST = async (req: Request) => {
       publishYear: result.data.publishYear,
       bookUrl: response[0].data.url,
       imageUrl: response[1].data.url,
+      contributors: result.data.extra.contributors,
+      lang: result.data.extra.lang,
+      numPages: result.data.extra.pages,
     });
 
     await newBook.save();
@@ -92,6 +97,7 @@ export const POST = async (req: Request) => {
       JSON.stringify({ message: "Book created successfully" })
     );
   } catch (error) {
+    console.log(error);
     return new NextResponse(
       JSON.stringify({ message: "Error uploading book.", error })
     );

@@ -47,7 +47,7 @@ const ReadBook = ({ params }: { params: { bookId: string } }) => {
   }, []);
 
   return (
-    <main className="flex flex-col max-h-screen relative overflow-hidden">
+    <main className="flex flex-col h-screen relative overflow-hidden">
       <div className="flex flex-row w-full h-16 shrink-0 bg-zinc-900">
         <Link href={`/book/${bookId}`}>back</Link>
         <p className="grow flex justify-center leading-[4rem]">
@@ -66,7 +66,7 @@ const ReadBook = ({ params }: { params: { bookId: string } }) => {
         {loading && (
           <Image
             priority
-            className="h-screen"
+            className="h-full"
             src={imageUrl}
             alt="cover image"
             width={300}
@@ -86,17 +86,16 @@ const ReadBook = ({ params }: { params: { bookId: string } }) => {
           >
             <Outline className="pdf-contents overflow-y-scroll w-full" />
             <p
-              className="absolute top-[50vh] -right-[60px] rotate-90 border-t border-x px-2.5 pt-1 bg-zinc-800"
+              className="absolute top-[50vh] -right-[60px] rotate-90 border-t border-x px-2.5 pt-1 bg-zinc-800 cursor-pointer"
               onClick={() => setHideOutline(!hideOutline)}
             >
               Contents
             </p>
           </div>
           {Array.from(new Array(numPages ?? 0), (el, index) => (
-            <div className="flex flex-row w-full">
+            <div className="flex flex-row w-full" key={`page_${index + 1}`}>
               <Page
                 className="!bg-transparent relative z-0"
-                key={`page_${index + 1}`}
                 pageNumber={index + 1}
                 width={pageWidth}
                 loading={""}

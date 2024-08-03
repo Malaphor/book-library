@@ -52,7 +52,7 @@ export const getImageName = (bookName: string) => {
   return bookName.substring(0, bookName.lastIndexOf("."));
 };
 
-const languages = [
+export const languages = [
   { code: "ab", name: "Abkhazian" },
   { code: "aa", name: "Afar" },
   { code: "af", name: "Afrikaans" },
@@ -248,7 +248,7 @@ const languages = [
 
 export const getLanguage = (code: string) => {
   const language = languages.find((lang) => {
-    return lang.code === code;
+    return lang.code === code?.toLowerCase();
   });
 
   return language?.name ?? "Unknown";

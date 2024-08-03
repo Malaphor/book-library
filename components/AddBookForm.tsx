@@ -35,6 +35,7 @@ import {
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Loader2 } from "lucide-react";
+import { navigateToHome } from "@/lib/actions";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -70,7 +71,9 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
   const [extraBookInfo, setExtraBookInfo] = useState({
     contributors: [],
     lang: "",
+    pages: -1,
   });
+  const hyphenRegex = /[-|‒|–|−]+/g;
   const pagesToSearch = 6;
 
   const searchBookInfo = async (isbn: string) => {
@@ -88,6 +91,13 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
         );
       }
 
+      let contributors;
+      if (data.docs[0].contributor && data.docs[0].contributor.length > 0) {
+        contributors = data.docs[0].contributor.join(",");
+      } else {
+        contributors = "";
+      }
+
       //console.log(data);
       form.setValue("title", data.docs[0].title);
       form.setValue("author", data.docs[0].author_name[0]);
@@ -95,8 +105,9 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
       form.setValue("publishYear", "" + data.docs[0].first_publish_year);
       form.setValue("olid", data.docs[0].edition_key);
       setExtraBookInfo({
-        contributors: data.docs[0].contributor,
-        lang: data.docs[0].language,
+        contributors: contributors,
+        lang: data.docs[0].language.join(""),
+        pages: data.docs[0].number_of_pages_median,
       });
     } catch (error) {
       console.error(error);
@@ -109,6 +120,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
     };
 
     const pdf = await pdfjs.getDocument(typedArray).promise;
+    setExtraBookInfo({ ...extraBookInfo, pages: pdf.numPages });
 
     for (let i = 1; i < pagesToSearch + 1; i++) {
       const page = await pdf.getPage(i);
@@ -141,7 +153,6 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
   const handleParseBook = async () => {
     setIsLoading(true);
     setParseMessage(undefined);
-    const hyphenRegex = /[-|‒|–|−]+/g;
 
     if (isbnSearch === "manual") {
       try {
@@ -168,47 +179,51 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
       setIsLoading(false);
       return;
     }
+    try {
+      const fileArrayBuffer = await readFile(filelist[0]);
+      const fileDataArray = new Uint8Array(fileArrayBuffer as ArrayBuffer);
 
-    const fileReader = new FileReader();
+      const textWithIsbn = await searchForIsbn(fileDataArray);
 
-    fileReader.onloadend = async () => {
-      try {
-        const fileDataArray = new Uint8Array(fileReader.result as ArrayBuffer);
-
-        const textWithIsbn = await searchForIsbn(fileDataArray);
-
-        if (!textWithIsbn) {
-          setParseMessage("Invalid or missing ISBN in the PDF.");
-          return;
-        }
-
-        const splitText = textWithIsbn.split(" ");
-        const isbn = splitText[splitText.length - 1].replaceAll(
-          hyphenRegex,
-          ""
-        );
-
-        if (isValidIsbn(isbn)) {
-          await searchBookInfo(isbn);
-        } else {
-          setParseMessage("Invalid or missing ISBN in the PDF.");
-          return;
-        }
-      } catch (error) {
-        console.error(error);
-        const errorMessage =
-          error instanceof Error ? error.message : (error as string);
-        setParseMessage(errorMessage);
-      } finally {
-        setIsLoading(false);
+      if (!textWithIsbn) {
+        setParseMessage("Invalid or missing ISBN in the PDF.");
+        return;
       }
-    };
 
-    fileReader.onerror = () => {
-      setParseMessage("Error reading file");
-    };
+      const splitText = textWithIsbn.split(" ");
+      const isbn = splitText[splitText.length - 1].replaceAll(hyphenRegex, "");
 
-    fileReader.readAsArrayBuffer(filelist[0]);
+      if (isValidIsbn(isbn)) {
+        await searchBookInfo(isbn);
+      } else {
+        setParseMessage("Invalid or missing ISBN in the PDF.");
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+      const errorMessage =
+        error instanceof Error ? error.message : (error as string);
+      setParseMessage(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const readFile = (file: File) => {
+    return new Promise<ArrayBuffer | null>((resolve) => {
+      const fileReader = new FileReader();
+
+      fileReader.onloadend = () => {
+        resolve(fileReader.result as ArrayBuffer);
+      };
+
+      fileReader.onerror = () => {
+        console.error("Error reading file");
+        return null;
+      };
+
+      fileReader.readAsArrayBuffer(file as File);
+    });
   };
 
   const getFirstPageAsImage = async (file: File) => {
@@ -223,6 +238,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
         });
       });
     };
+
     const convertToImage = async (typedArray: Uint8Array) => {
       try {
         const pdf = await pdfjs.getDocument(typedArray).promise;
@@ -251,22 +267,6 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
       }
     };
 
-    const readFile = (file: File) => {
-      return new Promise<ArrayBuffer | null>((resolve) => {
-        const fileReader = new FileReader();
-
-        fileReader.onloadend = () => {
-          resolve(fileReader.result as ArrayBuffer);
-        };
-
-        fileReader.onerror = () => {
-          console.error("Error reading file");
-          return null;
-        };
-
-        fileReader.readAsArrayBuffer(file as File);
-      });
-    };
     const fileAsArrayBuffer = await readFile(file);
     if (fileAsArrayBuffer) {
       return await convertToImage(new Uint8Array(fileAsArrayBuffer));
@@ -320,6 +320,16 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
       }
     }
 
+    if (extraBookInfo.pages === -1) {
+      const fileArrayBuffer = await readFile(data.bookFile[0]);
+      const fileDataArray = new Uint8Array(fileArrayBuffer as ArrayBuffer);
+      const pdf = await pdfjs.getDocument(fileDataArray).promise;
+      setExtraBookInfo({ ...extraBookInfo, pages: pdf.numPages });
+    }
+    console.log(extraBookInfo.lang);
+    if (extraBookInfo.lang === undefined)
+      setExtraBookInfo({ ...extraBookInfo, lang: "" });
+
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("author", data.author);
@@ -339,6 +349,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
     if (error) {
       setParseMessage(message);
     } else {
+      navigateToHome();
       closeDialog();
     }
   };

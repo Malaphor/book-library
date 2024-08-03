@@ -1,3 +1,5 @@
+import DeleteBook from "@/components/DeleteBook";
+import EditBookInfo from "@/components/EditBookInfo";
 import { Button } from "@/components/ui/button";
 import { getBook } from "@/lib/actions";
 import { BookDocument } from "@/lib/constants";
@@ -41,30 +43,32 @@ const Page = async ({ params }: { params: { bookId: string } }) => {
           <h1 className="text-lg font-bold">{book.title}</h1>
           <p>{book.publishYear}</p>
           <div className="flex flex-row gap-8 items-center pt-5">
-            <Button className="bg-slate-500 hover:bg-slate-900 p-2 flex flex-row justify-around group">
+            <Link href={`/read/${book._id}`}>
+              <Button className="bg-slate-500 hover:bg-slate-900 p-2 flex flex-row justify-around group">
+                <Image
+                  className="pr-3 group-hover:invert"
+                  src="/icons/read.png"
+                  alt="read book"
+                  width={40}
+                  height={40}
+                />
+                <p className="text-lg">Read</p>
+              </Button>
+            </Link>
+            <div className="flex justify-center group relative">
               <Image
-                className="pr-3 group-hover:invert"
-                src="/icons/read.png"
-                alt="read book"
-                width={40}
-                height={40}
+                className="w-[24px] invert group-hover:cursor-pointer"
+                src="/icons/mark-read.png"
+                alt="mark read"
+                width={35}
+                height={35}
               />
-              <p className="text-lg">Read</p>
-            </Button>
-            <Image
-              className="w-[24px] invert hover:cursor-pointer"
-              src="/icons/mark-read.png"
-              alt="mark read"
-              width={35}
-              height={35}
-            />
-            <Image
-              className="w-[24px] invert hover:cursor-pointer"
-              src="/icons/edit.png"
-              alt="edit book info"
-              width={35}
-              height={35}
-            />
+              <div className="absolute top-8 bg-zinc-600 rounded-md p-1.5 invisible group-hover:visible">
+                <p>Mark&nbsp;read</p>
+              </div>
+            </div>
+            <EditBookInfo book={book} />
+            <DeleteBook bookId={String(book._id)} />
           </div>
           <div className="min-h-20 py-5">description</div>
           <div className="flex flex-row gap-10 flex-wrap">

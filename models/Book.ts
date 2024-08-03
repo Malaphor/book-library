@@ -7,8 +7,9 @@ export interface BookInterface extends Document {
   publishYear: number;
   bookUrl: string;
   imageUrl: string;
-  contributors: string[];
-  lang: string;
+  contributors?: string;
+  lang?: string;
+  numPages: number;
 }
 
 const bookSchema: Schema = new mongoose.Schema({
@@ -18,8 +19,9 @@ const bookSchema: Schema = new mongoose.Schema({
   publishYear: { type: Number, required: true },
   bookUrl: { type: String, required: true },
   imageUrl: { type: String, required: true },
-  contributors: { type: [String], required: true },
-  lang: { type: String, required: true },
+  contributors: { type: String },
+  lang: { type: String },
+  numPages: { type: Number, required: true },
 });
 
 const Book =
