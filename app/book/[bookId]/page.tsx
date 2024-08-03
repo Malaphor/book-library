@@ -6,7 +6,6 @@ import { BookDocument } from "@/lib/constants";
 import { getLanguage } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 
 const Page = async ({ params }: { params: { bookId: string } }) => {
   const book: BookDocument = await getBook(params.bookId);

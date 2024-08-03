@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "./ui/dialog";
 import { usePathname } from "next/navigation";
 import AddBookForm from "./AddBookForm";
 import { useState } from "react";

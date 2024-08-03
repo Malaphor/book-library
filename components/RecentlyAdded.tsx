@@ -1,5 +1,4 @@
 import { getRecentlyAddedBooks } from "@/lib/actions";
-import React from "react";
 import BookCover from "./BookCover";
 import { BookDocument } from "@/lib/constants";
 

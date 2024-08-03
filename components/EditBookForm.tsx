@@ -1,6 +1,6 @@
 "use client";
 
-import { DialogClose } from "@radix-ui/react-dialog";
+import { DialogClose } from "./ui/dialog";
 import { Loader2 } from "lucide-react";
 import { Input } from "./ui/input";
 import React, { useState } from "react";
@@ -20,7 +20,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "./ui/select";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
