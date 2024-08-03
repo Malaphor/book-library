@@ -9,10 +9,12 @@ import { Document, Outline, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+pdfjs.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+/* new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url
-).toString();
+).toString();*/
 
 const options = {
   cMapUrl: "/cmaps/",
