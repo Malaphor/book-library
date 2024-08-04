@@ -37,12 +37,26 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Loader2 } from "lucide-react";
 import { navigateToHome } from "@/lib/actions";
 
+// @ts-expect-error This does not exist outside of polyfill which this is doing
+if (typeof Promise.withResolvers === "undefined") {
+  if (window)
+    // @ts-expect-error This does not exist outside of polyfill which this is doing
+    window.Promise.withResolvers = function () {
+      let resolve, reject;
+      const promise = new Promise((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    };
+}
+
 pdfjs.GlobalWorkerOptions.workerSrc =
-  //"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-  new URL(
-    "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-    import.meta.url
-  ).toString();
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+/* new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();*/
 
 const options = {
   cMapUrl: "/cmaps/",
