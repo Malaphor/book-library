@@ -33,12 +33,9 @@ if (typeof Promise.withResolvers === "undefined") {
   }
 }
 
-pdfjs.GlobalWorkerOptions.workerSrc =
-  //  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-  new URL(
-    "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-    import.meta.url
-  ).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+//  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+//new URL(    "pdfjs-dist/legacy/build/pdf.worker.min.mjs",    import.meta.url  ).toString();
 
 const options = {
   cMapUrl: "/cmaps/",
