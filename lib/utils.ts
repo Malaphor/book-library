@@ -49,6 +49,8 @@ const isValidIsbn13 = (isbn: string) => {
 };
 
 export const getImageName = (bookName: string) => {
+  if (bookName.lastIndexOf(".") === -1) return bookName;
+
   return bookName.substring(0, bookName.lastIndexOf("."));
 };
 

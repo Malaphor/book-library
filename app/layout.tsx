@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-zinc-800 text-white`}>
         <div className="flex flex-row">
-          <div className="flex basis-1/6 shrink-0 bg-zinc-900">
+          <div className="flex basis-1/6 shrink-0 min-w-[200px] bg-zinc-900">
             <Sidebar />
           </div>
           <div className="flex-auto">{children}</div>

@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import { utapi } from "./uploadthing";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getImageName } from "./utils";
 
 export const getRecentlyAddedBooks = async () => {
   await dbConnect();
@@ -82,7 +83,7 @@ export const updateBookInfo = async (data: EditBookDocument) => {
         error: true,
       };
     }
-    console.log(result);
+
     await dbConnect();
 
     const updatedBook = await Book.findByIdAndUpdate(
@@ -90,9 +91,10 @@ export const updateBookInfo = async (data: EditBookDocument) => {
       result.data,
       {
         new: true,
+        lean: true,
       }
-    ).lean();
-    console.log(updatedBook);
+    );
+    //console.log(updatedBook);
 
     if (!updatedBook)
       return {
@@ -103,7 +105,66 @@ export const updateBookInfo = async (data: EditBookDocument) => {
     return { message: "Book updated", error: false };
   } catch (err) {
     console.error(err);
-    return { message: "Book failed to update. Try again later.", error: err };
+    return {
+      message: "Book failed to update. Try again later.",
+      error: true,
+    };
+  }
+};
+
+export const updateBookImage = async (
+  imageUrl: string,
+  title: string,
+  bookId: string
+) => {
+  let dataToReturn = { message: "", error: false };
+  let imageName = getImageName(title);
+  try {
+    const fetchResponse = await fetch(imageUrl, {});
+
+    if (fetchResponse.url !== imageUrl) {
+      //diff url means found image
+      const imageBlob = await fetchResponse.blob();
+
+      const resizedImage = await resizeCoverImage(imageBlob, imageName);
+
+      if (!resizedImage) {
+        dataToReturn = { message: "Error resizing new image.", error: true };
+        return dataToReturn;
+      }
+
+      const response = await utapi.uploadFiles(resizedImage);
+
+      if (!response || response.error) {
+        dataToReturn = { message: "Error uploading new image.", error: true };
+        return dataToReturn;
+      }
+
+      const newImageUrl = response.data.url;
+
+      dbConnect();
+
+      const book = await Book.findById(bookId);
+
+      const imageKey = book.imageUrl.substring(
+        book.imageUrl.lastIndexOf("/") + 1
+      );
+
+      const deleteResponse = await utapi.deleteFiles(imageKey);
+
+      if (!deleteResponse || !deleteResponse.success) {
+        dataToReturn = { message: "Error deleting old image.", error: true };
+        //non breaking error, dont return
+      }
+
+      book.imageUrl = newImageUrl;
+
+      await book.save();
+    }
+    return dataToReturn;
+  } catch (error) {
+    console.log(error);
+    dataToReturn = { message: "Failed to update image.", error: true };
   }
 };
 

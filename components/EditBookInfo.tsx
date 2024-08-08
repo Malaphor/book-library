@@ -11,6 +11,8 @@ import {
 import Image from "next/image";
 import EditBookForm from "./EditBookForm";
 import { BookDocument } from "@/lib/constants";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import EditCoverImage from "./EditCoverImage";
 
 const EditBookInfo = ({ book }: { book: BookDocument }) => {
   const [open, setOpen] = useState(false);
@@ -35,7 +37,22 @@ const EditBookInfo = ({ book }: { book: BookDocument }) => {
         <DialogHeader>
           <DialogTitle>Update book information</DialogTitle>
         </DialogHeader>
-        <EditBookForm book={book} closeDialog={() => setOpen(false)} />
+        <Tabs defaultValue="info">
+          <TabsList className="w-full">
+            <TabsTrigger value="info" className="basis-1/2">
+              General
+            </TabsTrigger>
+            <TabsTrigger value="image" className="basis-1/2">
+              Image
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="info">
+            <EditBookForm book={book} closeDialog={() => setOpen(false)} />
+          </TabsContent>
+          <TabsContent value="image">
+            <EditCoverImage book={book} closeDialog={() => setOpen(false)} />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

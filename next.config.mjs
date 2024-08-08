@@ -13,6 +13,12 @@ const nextConfig = {
         port: "",
         pathname: "/f/*",
       },
+      {
+        protocol: "https",
+        hostname: "covers.openlibrary.org",
+        port: "",
+        pathname: "/b/olid/*",
+      },
     ],
   },
   typescript: {

@@ -39,7 +39,7 @@ export const editBookServerSchema = z.object({
   author: z.string().min(2).max(150),
   isbn: z.string().min(10).max(13),
   publishYear: z.number().int().gte(1000).lte(9999),
-  contributors: z.string(),
+  contributors: z.array(z.string()),
   lang: z.string(),
 });
 
@@ -69,7 +69,7 @@ export type AddBookFormProps = {
   closeDialog: () => void;
 };
 
-export type EditBookFormProps = {
+export type EditBookProps = {
   book: BookDocument;
   closeDialog: () => void;
 };
@@ -95,8 +95,9 @@ export type BookDocument = {
   publishYear: number;
   bookUrl: string;
   imageUrl: string;
-  contributors: string;
+  contributors: string[];
   lang: string;
+  numPages: number;
 };
 
 export type EditBookDocument = {
@@ -105,6 +106,6 @@ export type EditBookDocument = {
   author: string;
   isbn: string;
   publishYear: number;
-  contributors: string;
+  contributors: string[];
   lang: string;
 };

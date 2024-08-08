@@ -93,7 +93,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
 
       let contributors;
       if (data.docs[0].contributor && data.docs[0].contributor.length > 0) {
-        contributors = data.docs[0].contributor.join(",");
+        contributors = data.docs[0].contributor.join("/");
       } else {
         contributors = "";
       }
@@ -106,7 +106,7 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
       form.setValue("olid", data.docs[0].edition_key);
       setExtraBookInfo({
         contributors: contributors,
-        lang: data.docs[0].language.join(""),
+        lang: data.docs[0].language ? data.docs[0].language[0] : "",
         pages: data.docs[0].number_of_pages_median,
       });
     } catch (error) {
@@ -114,40 +114,61 @@ const AddBookForm = ({ closeDialog }: AddBookFormProps) => {
     }
   };
 
-  const searchForIsbn = async (typedArray: Uint8Array) => {
+  const searchTextContent = (textItems: (TextItem | TextMarkedContent)[]) => {
     const isTextItem = (obj: TextItem | TextMarkedContent): obj is TextItem => {
       return "str" in obj;
     };
+    let textWithIsbn: string[] = [];
 
+    for (let j = 0; j < textItems.length; j++) {
+      const item = textItems[j];
+      if (isTextItem(item)) {
+        if (item.str.includes("ISBN")) {
+          //some books have TextItems between ISBN and the number so we grab the whole line
+          for (let k = 0; k < 5; k++) {
+            const nextItem = textItems[j + k];
+            if (isTextItem(nextItem)) {
+              textWithIsbn.push(nextItem.str);
+              if (nextItem.hasEOL === true) break;
+            }
+          }
+          //some books have extra spaces or '' after the number so we filter all that shit out
+          const textToReturn = textWithIsbn.filter(
+            (text) => text !== " " && text !== ""
+          );
+          //console.log("returned", textToReturn);
+          return textToReturn.join(" ");
+          //return item.str;
+        }
+      }
+    }
+
+    return undefined;
+  };
+
+  const searchForIsbn = async (typedArray: Uint8Array) => {
     const pdf = await pdfjs.getDocument(typedArray).promise;
     setExtraBookInfo({ ...extraBookInfo, pages: pdf.numPages });
+    let isbnText: string | undefined = undefined;
 
     for (let i = 1; i < pagesToSearch + 1; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      let textWithIsbn: string[] = [];
 
-      for (let j = 0; j < textContent.items.length; j++) {
-        const item = textContent.items[j];
-        if (isTextItem(item)) {
-          if (item.str.includes("ISBN")) {
-            //some books have TextItems between ISBN and the number so we grab the whole line
-            for (let k = 0; k < 5; k++) {
-              textWithIsbn.push(textContent.items[j + k].str);
-              if (textContent.items[j + k].hasEOL === true) break;
-            }
-            //some books have extra spaces or '' after the number so we filter all that shit out
-            const textToReturn = textWithIsbn.filter(
-              (text) => text !== " " && text !== ""
-            );
-            //console.log("returned", textToReturn);
-            return textToReturn.join(" ");
-            //return item.str;
-          }
-        }
+      isbnText = searchTextContent(textContent.items);
+      if (isbnText) break;
+    }
+
+    if (isbnText === undefined) {
+      for (let i = pdf.numPages; i > pdf.numPages - pagesToSearch; i--) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+
+        isbnText = searchTextContent(textContent.items as TextItem[]);
       }
     }
-    return undefined;
+
+    return isbnText;
   };
 
   const handleParseBook = async () => {

@@ -86,7 +86,7 @@ export const POST = async (req: Request) => {
       publishYear: result.data.publishYear,
       bookUrl: response[0].data.url,
       imageUrl: response[1].data.url,
-      contributors: result.data.extra.contributors,
+      contributors: result.data.extra.contributors?.split("/"),
       lang: result.data.extra.lang,
       numPages: result.data.extra.pages,
     });

@@ -24,12 +24,12 @@ import {
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EditBookFormProps, editBookFormSchema } from "@/lib/constants";
+import { EditBookProps, editBookFormSchema } from "@/lib/constants";
 import { updateBookInfo } from "@/lib/actions";
 import { getLanguage, languages } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
-const EditBookForm = ({ book, closeDialog }: EditBookFormProps) => {
+const EditBookForm = ({ book, closeDialog }: EditBookProps) => {
   const router = useRouter();
   const [editMessage, setEditMessage] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +42,7 @@ const EditBookForm = ({ book, closeDialog }: EditBookFormProps) => {
       author: book.author,
       isbn: book.isbn,
       publishYear: String(book.publishYear),
-      contributors: book.contributors ?? "",
+      contributors: book.contributors?.join(" / ") ?? "",
       lang: currentLang === "Unknown" ? "en" : book.lang,
     },
   });
@@ -50,13 +50,13 @@ const EditBookForm = ({ book, closeDialog }: EditBookFormProps) => {
   const onSubmit = async (data: z.infer<typeof editBookFormSchema>) => {
     setIsLoading(true);
     setEditMessage(undefined);
-    console.log(data);
+    //console.log(data);
 
-    let contributors: string;
+    let contributors: string[];
     if (data.contributors.length > 0) {
-      contributors = data.contributors.replaceAll(" ", "");
+      contributors = data.contributors.split("/").map((line) => line.trim());
     } else {
-      contributors = "";
+      contributors = [];
     }
 
     const bookData = {
@@ -170,7 +170,7 @@ const EditBookForm = ({ book, closeDialog }: EditBookFormProps) => {
               <FormControl>
                 <Input
                   className="bg-slate-950"
-                  placeholder="Separated, by, commas"
+                  placeholder="Separated / by / slash"
                   {...field}
                 />
               </FormControl>

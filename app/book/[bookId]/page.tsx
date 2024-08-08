@@ -68,40 +68,56 @@ const Page = async ({ params }: { params: { bookId: string } }) => {
             </div>
             <EditBookInfo book={book} />
             <DeleteBook bookId={String(book._id)} />
+            <Link
+              href={`/api/download/?fileUrl=${book.bookUrl}&title=${book.title}`}
+            >
+              <div className="flex justify-center group relative">
+                <Image
+                  className="w-[24px] invert hover:cursor-pointer"
+                  src="/icons/download.png"
+                  alt="download"
+                  width={35}
+                  height={35}
+                />
+                <div className="absolute top-8 bg-zinc-600 rounded-md p-1.5 invisible group-hover:visible">
+                  <p>Download</p>
+                </div>
+              </div>
+            </Link>
           </div>
           <div className="min-h-20 py-5">description</div>
           <div className="flex flex-row gap-10 flex-wrap">
             <div className="flex flex-col gap-3 basis-1/3">
               <div className="flex flex-row justify-between">
-                <p className="opacity-75">Author: </p>
+                <p className="opacity-75 mr-2">Author: </p>
                 <p>{book.author}</p>
               </div>
               <div className="flex flex-row justify-between">
-                <p className="opacity-75">Contributor(s): </p>
-                <p>{book.contributors}</p>
+                <p className="opacity-75 mr-2">Contributor(s): </p>
+                <p>{book.contributors?.join(", ")}</p>
               </div>
             </div>
             <div className="flex flex-col gap-3 basis-1/3">
               <div className="flex flex-row justify-between">
-                <p className="opacity-75">Language: </p>
+                <p className="opacity-75 mr-2">Language: </p>
                 <p>{getLanguage(book.lang)}</p>
               </div>
               <div className="flex flex-row justify-between">
-                <p className="opacity-75">File type: </p>
+                <p className="opacity-75 mr-2">File type: </p>
                 <p>
                   {book.bookUrl
                     .substring(book.bookUrl.lastIndexOf(".") + 1)
                     .toUpperCase()}
                 </p>
-                <p className="opacity-75">Pages</p>
-                <p>69</p>
+                <p className="opacity-75 mr-2">Pages</p>
+                <p>{book.numPages}</p>
               </div>
             </div>
           </div>
         </div>
       </section>
       <section>
-        <h1 className="font-semibold text-xl mb-5">Related Books</h1>
+        <h1 className="font-semibold text-xl mb-5">More by {book.author}</h1>
         <div className="flex flex-row gap-10">{/* related books */}</div>
       </section>
     </main>
